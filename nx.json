@@ -13,6 +13,9 @@
     },
     "fs-datatable-e2e": {
       "tags": []
+    },
+    "data-table": {
+      "tags": []
     }
   }
 }
