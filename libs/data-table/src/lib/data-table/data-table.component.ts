@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import {
-  CdkDragDrop, CdkDragEnd,
+  CdkDragDrop,
+  CdkDragEnd,
   CdkDragMove,
-  CdkDragSortEvent,
   CdkDragStart,
+  CdkDropList,
   moveItemInArray
 } from '@angular/cdk/drag-drop';
 import { BehaviorSubject } from 'rxjs';
@@ -20,48 +21,37 @@ interface Folder {
   id: number;
 }
 
-const items: Array<File|Folder> = [
-  {id: 0, type: 'FOLDER', name: 'Elements'},
-  {id: 10, type: 'FILE', name: 'Sodium'},
+const items: Array<File | Folder> = [
+  { id: 0, type: 'FOLDER', name: 'Elements' },
+  { id: 3, type: 'FILE', name: 'Lithium' },
+  { id: 4, type: 'FILE', name: 'Beryllium' },
+  { id: 5, type: 'FILE', name: 'Boron' },
+  { id: 6, type: 'FILE', name: 'Carbon' },
+  { id: 7, type: 'FILE', name: 'Nitrogen' },
+  { id: 8, type: 'FILE', name: 'Oxygen' },
+  { id: 9, type: 'FILE', name: 'Fluorine' },
+  { id: 10, type: 'FILE', name: 'Neon' },
+  { id: 11, type: 'FILE', name: 'Sodium' }
 ];
 
-const elements: Array<File|Folder> = [
-  {id: 1, type: 'FILE', name: 'Hydrogen'},
-  {id: 2, type: 'FILE', name: 'Helium'},
-  {id: 3, type: 'FILE', name: 'Lithium'},
-  {id: 4, type: 'FILE', name: 'Beryllium'},
-  {id: 5, type: 'FILE', name: 'Boron'},
-  {id: 6, type: 'FILE', name: 'Carbon'},
-  {id: 7, type: 'FILE', name: 'Nitrogen'},
-  {id: 8, type: 'FILE', name: 'Oxygen'},
-  {id: 9, type: 'FILE', name: 'Fluorine'},
-  {id: 10, type: 'FILE', name: 'Neon'},
-]
-
+const elements: Array<File | Folder> = [
+  { id: 1, type: 'FILE', name: 'Hydrogen' },
+  { id: 2, type: 'FILE', name: 'Helium' }
+];
 
 @Component({
   selector: 'demo-data-table',
   templateUrl: './data-table.component.html',
-  styleUrls: ['./data-table.component.scss'],
+  styleUrls: ['./data-table.component.scss']
 })
 export class DataTableComponent {
   displayedColumns: string[] = ['expand', 'type', 'name'];
   private items = items;
-  dataSource = new BehaviorSubject<Array<File|Folder>>(this.items);
-
-  private state = [];
-
+  dataSource = new BehaviorSubject<Array<File | Folder>>(this.items);
   expanded = {
     0: false
-  }
-
-  private _itemRecs: (ClientRect | DOMRect)[] = [];
-
-  onDrop(event: CdkDragDrop<Array<File|Folder>>) {
-    const previousIndex = this.items.findIndex(item => item === event.item.data);
-    moveItemInArray(this.items, previousIndex, event.currentIndex);
-    this.dataSource.next(this.items);
-  }
+  };
+  private _itemRecs;
 
   onExpand(folder: Folder) {
     this.expanded[folder.id] = true;
@@ -75,47 +65,58 @@ export class DataTableComponent {
     this.dataSource.next(this.items);
   }
 
-  onItemDropped(event: CdkDragEnd) {
-    console.log(this.state);
-    const [offset, index] = this.state;
-    const previousIndex = this.items.findIndex(item => item === event.source.data);
-    if (offset === 0) {
-      elements.push(event.source.data);
-      this.items.splice(this.items.indexOf(event.source.data), 1);
-    } else {
-      moveItemInArray(this.items, previousIndex, index + offset);
-    }
-    event.source.reset();
+  onDropped(event: CdkDragDrop<any>) {
+    const previousIndex = this.items.indexOf(event.item.data);
+    moveItemInArray(this.items, previousIndex, event.currentIndex);
     this.dataSource.next(this.items);
   }
-  
-  onItemDragStart(event: CdkDragStart) {
-    this._itemRecs = Array.from(event.source.element.nativeElement.parentElement.querySelectorAll('[cdkdrag]')).map(item => item.getBoundingClientRect());
+
+  onDragStarted(event: CdkDragStart) {
+    const nativeElement = event.source.element.nativeElement;
+    this._itemRecs = Array.from(nativeElement.parentElement.children).map(
+      node => node.getBoundingClientRect()
+    );
   }
 
-  onItemMoved(event: CdkDragMove) {
-    const buffer = 8;
-    if (event.pointerPosition.y < Math.floor(this._itemRecs[0].top)) {
-      this.state = [-1, 0];
-      return;
-    }
-    if (event.pointerPosition.y > Math.floor(this._itemRecs[this._itemRecs.length - 1].bottom)) {
-      this.state = [1, this._itemRecs.length - 1];
-      return;
-    }
-    const index = this._itemRecs.findIndex(rect => {
-      return event.pointerPosition.y <= Math.floor(rect.bottom) && event.pointerPosition.y >= Math.floor(rect.top)
-    });
-    if (event.pointerPosition.y >= Math.floor(this._itemRecs[index].bottom) - buffer) {
-      this.state = [1, index];
-    } else if (event.pointerPosition.y <= Math.floor(this._itemRecs[index].top) + buffer) {
-      this.state = [-1, index];
+  onDragMove(event: CdkDragMove) {
+    console.log(this.items[this.getCurrentIndex(event)]);
+  }
+
+  onDragEnded(event: CdkDragEnd) {
+    const nativeElement = event.source.element.nativeElement;
+    event.source.reset();
+  }
+
+  private getCurrentIndex(event: CdkDragMove) {
+    let index: number;
+    if (this.isAbove(this._itemRecs[0], event.pointerPosition.y)) {
+      index = 0;
+    } else if (
+      this.isBelow(
+        this._itemRecs[this._itemRecs.length - 1],
+        event.pointerPosition.y
+      )
+    ) {
+      index = this._itemRecs.length - 1;
     } else {
-      this.state = [0, index];
+      index = this._itemRecs.findIndex(rect =>
+        this.isWithin(rect, event.pointerPosition.y)
+      );
     }
+    return index;
   }
 
-  onItemDroppedIntoFolder(event) {
-    console.log('DROPPED', event);
+  private isWithin(rect: ClientRect | DOMRect, pointerY: number) {
+    return (
+      pointerY <= Math.floor(rect.bottom) && pointerY >= Math.floor(rect.top)
+    );
+  }
+
+  private isBelow(rect: ClientRect | DOMRect, pointerY: number) {
+    return pointerY >= Math.floor(rect.bottom);
+  }
+
+  private isAbove(rect: ClientRect | DOMRect, pointerY: number) {
+    return pointerY <= Math.floor(rect.top);
   }
 }

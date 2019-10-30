@@ -7,7 +7,6 @@
   //transform: none !important;
 }
 
-
 .cdk-drag-placeholder {
   visibility: hidden;
 }
@@ -26,4 +25,8 @@ div {
   width: 200px;
   height: 200px;
   border: solid 1px black;
+}
+
+table {
+  width: 100%;
 }
