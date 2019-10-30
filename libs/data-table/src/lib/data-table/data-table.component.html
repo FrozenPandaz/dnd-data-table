@@ -1,8 +1,27 @@
 <table
   mat-table
+  [attr.cdk-drop-list]="true"
+  (cdkDropListDropped)="onDrop($event)"
   [dataSource]="dataSource"
   class="mat-elevation-z8"
 >
+  <ng-container matColumnDef="expand">
+    <th mat-header-cell *matHeaderCellDef>Button</th>
+    <td mat-cell *matCellDef="let element">
+      <button
+        *ngIf="element.type === 'FOLDER' && !this.expanded[element.id]"
+        (click)="onExpand(element)"
+      >
+        Expand
+      </button>
+      <button
+        *ngIf="element.type === 'FOLDER' && this.expanded[element.id]"
+        (click)="onCollapse(element)"
+      >
+        Collapse
+      </button>
+    </td>
+  </ng-container>
   <!--- Note that these columns can be defined in any order.
         The actual rendered columns are set as a property on the row definition" -->
   <!-- Position Column -->
@@ -21,10 +40,10 @@
 
   <tr
     cdkDrag
+    [cdkDragData]="row"
     (cdkDragStarted)="onItemDragStart($event)"
     (cdkDragMoved)="onItemMoved($event)"
     (cdkDragEnded)="onItemDropped($event)"
-    [cdkDragData]="row"
     cdkDragLockAxis="y"
     mat-row
     *matRowDef="let row; columns: displayedColumns"
