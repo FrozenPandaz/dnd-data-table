@@ -1,0 +1,24 @@
+.mat-cell.mat-column-name {
+  padding-left: 2em;
+  padding-right: 2em;
+}
+
+.mat-row {
+  //transform: none !important;
+}
+
+
+.cdk-drag-placeholder {
+  visibility: hidden;
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transform: none;
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+.cdk-drop-list-receiving {
+  background: pink;
+}

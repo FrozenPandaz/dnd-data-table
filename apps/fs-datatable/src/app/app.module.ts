@@ -4,10 +4,11 @@ import { NgModule } from "@angular/core";
 import { DataTableModule } from '@demo/data-table';
 
 import { AppComponent } from "./app.component";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, DataTableModule],
+  imports: [BrowserModule, DataTableModule, BrowserAnimationsModule],
   providers: [],
   bootstrap: [AppComponent]
 })
