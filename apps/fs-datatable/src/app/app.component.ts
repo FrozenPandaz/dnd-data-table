@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { DropEvent } from '../../../../libs/data-table/src/lib/data-table/data-table.component';
+import { moveItemInArray } from '@angular/cdk/drag-drop';
 
 interface File {
   type: 'FILE';
@@ -38,16 +38,26 @@ const elements: Array<File | Folder> = [
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  items = items;
+  data = items;
   columns = ['type', 'name'];
   isFolder(item: File | Folder) {
-    console.log(item);
     return item.type === 'FOLDER';
   }
 
-  onDrop(event: DropEvent) {
+  onDrop(event: DropEvent<File | Folder>) {
     if (event.currentIndex === event.previousIndex) {
       return;
     }
+    this.data.splice(event.previousIndex, 1);
+    elements.push(event.event.source.data);
+    event.render(this.data);
+  }
+
+  onSort(event: DropEvent<File | Folder>) {
+    if (event.currentIndex === event.previousIndex) {
+      return;
+    }
+    moveItemInArray(this.data, event.previousIndex, event.currentIndex);
+    event.render(this.data);
   }
 }

@@ -1,7 +1,9 @@
 <h1>Data Table Demo</h1>
 <demo-data-table
+  [data]="data"
   [displayedColumns]="columns"
   (drop)="onDrop($event)"
+  (sort)="onSort($event)"
   [dropBuffer]="8"
   [dropPredicate]="isFolder"
 ></demo-data-table>

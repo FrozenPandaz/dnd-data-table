@@ -1,7 +1,9 @@
 import {
   Component,
+  Directive,
   EventEmitter,
   Input,
+  OnInit,
   Output,
   ViewChild
 } from '@angular/core';
@@ -15,11 +17,13 @@ import {
 } from '@angular/cdk/drag-drop';
 import { BehaviorSubject } from 'rxjs';
 import { DataSource } from '@angular/cdk/collections';
+import { MatTable } from '@angular/material/table';
 
-export interface DropEvent {
+export interface DropEvent<T> {
   previousIndex: number;
   currentIndex: number;
   event: CdkDragEnd;
+  render: (data: T[]) => void;
 }
 
 interface File {
@@ -57,28 +61,28 @@ const elements: Array<File | Folder> = [
   templateUrl: './data-table.component.html',
   styleUrls: ['./data-table.component.scss']
 })
-export class DataTableComponent {
-  items = items;
+// tslint:disable-next-line:directive-class-suffix
+export class DemoDataTableComponent<T> implements OnInit {
+  @Input()
+  data: T[];
   @Input()
   displayedColumns: string[] = ['type', 'name'];
   @Input()
-  dataSource = new BehaviorSubject(this.items);
+  dataSource: BehaviorSubject<T[]>;
   @Output()
-  drop = new EventEmitter<DropEvent>();
+  sort = new EventEmitter<DropEvent<T>>();
+  @Output()
+  drop = new EventEmitter<DropEvent<T>>();
   @Input()
   dropBuffer: number;
   @Input()
-  dropPredicate: <T = unknown>(item: T) => boolean;
+  dropPredicate: (item: T) => boolean;
   private _itemRecs;
   private currentIndex: number;
+  private hoverZone: number;
 
-  onDropped(previousIndex: number, currentIndex: number) {
-    // const canDrop = this.dropPredicate(this.items[currentIndex]);
-    // if (!canDrop) {
-    //   moveItemInArray(this.items, previousIndex, currentIndex);
-    // } else {
-    // }
-    // this.dataSource.next(this.items);
+  ngOnInit() {
+    this.dataSource = new BehaviorSubject(this.data);
   }
 
   onDragStarted(event: CdkDragStart) {
@@ -101,14 +105,16 @@ export class DataTableComponent {
         }
         const direction = this.currentIndex < previousIndex ? 1 : -1;
         if (this.isBetween(i, previousIndex, this.currentIndex)) {
-          if (!this.dropPredicate(this.items[this.currentIndex])) {
+          if (!this.dropPredicate(this.data[this.currentIndex])) {
             this.translateItem(elem, direction);
           } else {
             if (i === this.currentIndex) {
-              const hoverZone = this.getHoverZone(this._itemRecs[i], event);
+              this.hoverZone = this.getHoverZone(this._itemRecs[i], event);
 
-              if (hoverZone === -direction) {
+              if (this.hoverZone === -direction) {
                 this.translateItem(elem, direction);
+              } else {
+                elem.style.transform = null;
               }
             }
           }
@@ -117,13 +123,10 @@ export class DataTableComponent {
         }
       }
     );
-
-    console.log(this.items[this.getCurrentIndex(event)]);
   }
 
   onDragEnded(event: CdkDragEnd) {
     const nativeElement = event.source.element.nativeElement;
-    console.log('end');
     const previousIndex = this.getPreviousIndex(event);
 
     Array.from(nativeElement.parentElement.children).forEach(
@@ -135,37 +138,33 @@ export class DataTableComponent {
     if (previousIndex === this.currentIndex) {
       return;
     }
-    this.drop.next({
+    console.log(
+      this.dropPredicate(this.data[this.currentIndex]),
+      this.hoverZone
+    );
+    if (
+      this.dropPredicate(this.data[this.currentIndex]) &&
+      this.hoverZone === 0
+    ) {
+      this.drop.next({
+        previousIndex,
+        currentIndex: this.currentIndex,
+        render: data => {
+          this.dataSource.next(data);
+        },
+        event
+      });
+      return;
+    }
+    this.sort.next({
       previousIndex,
       currentIndex: this.currentIndex,
+      render: data => {
+        this.dataSource.next(data);
+      },
       event
     });
   }
-
-  // private translateItems(
-  //   event: CdkDragMove,
-  //   previousIndex: number,
-  //   currentIndex: number
-  // ) {
-  //   const nativeElement = event.source.element.nativeElement;
-  //   const direction = currentIndex < previousIndex ? 1 : -1;
-  //   Array.from(nativeElement.parentElement.children).forEach(
-  //     (elem: HTMLElement, i) => {
-  //       if (i === previousIndex) {
-  //         return;
-  //       }
-  //       if (
-  //         !this.dropPredicate(this.items[i]) &&
-  //
-  //       ) {
-  //         const transformDistance = this.getTransformDistance(elem, direction);
-  //         elem.style.transform = `translate3d(0, ${transformDistance}px, 0)`;
-  //       } else {
-  //         elem.style.transform = null;
-  //       }
-  //     }
-  //   );
-  // }
 
   private translateItem(elem: HTMLElement, direction: 1 | -1) {
     const transformDistance = this.getTransformDistance(elem, direction);
@@ -183,7 +182,7 @@ export class DataTableComponent {
   }
 
   private getPreviousIndex(event: CdkDragMove | CdkDragEnd) {
-    return this.items.indexOf(event.source.data);
+    return this.data.indexOf(event.source.data);
   }
 
   private getCurrentIndex(event: CdkDragMove) {
@@ -230,7 +229,6 @@ export class DataTableComponent {
   }
 
   private isBetween(a: number, b: number, c: number) {
-    console.log(b, c);
     return (b < c && a > b && a <= c) || (b > c && a < b && a >= c);
   }
 }
