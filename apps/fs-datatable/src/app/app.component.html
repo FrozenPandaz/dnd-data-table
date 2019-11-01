@@ -1,2 +1,7 @@
 <h1>Data Table Demo</h1>
-<demo-data-table></demo-data-table>
+<demo-data-table
+  [displayedColumns]="columns"
+  (drop)="onDrop($event)"
+  [dropBuffer]="8"
+  [dropPredicate]="isFolder"
+></demo-data-table>
