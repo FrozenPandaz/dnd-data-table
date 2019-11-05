@@ -1,9 +1,36 @@
 <h1>Data Table Demo</h1>
-<demo-data-table
-  [data]="data"
-  [displayedColumns]="columns"
-  (drop)="onDrop($event)"
-  (sort)="onSort($event)"
-  [dropBuffer]="8"
-  [dropPredicate]="isFolder"
-></demo-data-table>
+<table
+  id="list-1"
+  mat-table
+  [dataSource]="data"
+  class="mat-elevation-z8"
+  demoDragDropList
+  [demoDragDropListLockAxis]="'y'"
+  [demoDragDropListData]="items"
+  (dropDragListSort)="onSort($event)"
+  (dropDragListDrop)="onDrop($event)"
+  [dragPredicate]="isFolder"
+>
+  <!--- Note that these columns can be defined in any order.
+        The actual rendered columns are set as a property on the row definition" -->
+  <!-- Position Column -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef>Type</th>
+    <td mat-cell *matCellDef="let element">{{ element.type }}</td>
+  </ng-container>
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+
+  <tr
+    cdkDrag
+    [cdkDragData]="row"
+    mat-row
+    *matRowDef="let row; columns: columns"
+  ></tr>
+</table>

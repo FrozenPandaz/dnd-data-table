@@ -15,7 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@demo/data-table": ["libs/data-table/src/index.ts"]
+      "@demo/drag-drop-list": ["libs/drag-drop-list/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

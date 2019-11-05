@@ -84,9 +84,7 @@
               "apps/fs-datatable/tsconfig.app.json",
               "apps/fs-datatable/tsconfig.spec.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         },
         "test": {
@@ -121,16 +119,14 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": "apps/fs-datatable-e2e/tsconfig.e2e.json",
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
     },
-    "data-table": {
-      "root": "libs/data-table",
-      "sourceRoot": "libs/data-table/src",
+    "drag-drop-list": {
+      "root": "libs/drag-drop-list",
+      "sourceRoot": "libs/drag-drop-list/src",
       "projectType": "library",
       "prefix": "demo",
       "architect": {
@@ -138,20 +134,18 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "libs/data-table/tsconfig.lib.json",
-              "libs/data-table/tsconfig.spec.json"
+              "libs/drag-drop-list/tsconfig.lib.json",
+              "libs/drag-drop-list/tsconfig.spec.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         },
         "test": {
           "builder": "@nrwl/builders:jest",
           "options": {
-            "jestConfig": "libs/data-table/jest.config.js",
-            "tsConfig": "libs/data-table/tsconfig.spec.json",
-            "setupFile": "libs/data-table/src/test-setup.ts"
+            "jestConfig": "libs/drag-drop-list/jest.config.js",
+            "tsConfig": "libs/drag-drop-list/tsconfig.spec.json",
+            "setupFile": "libs/drag-drop-list/src/test-setup.ts"
           }
         }
       },

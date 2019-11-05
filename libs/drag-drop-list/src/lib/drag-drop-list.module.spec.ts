@@ -1,14 +1,14 @@
 import { async, TestBed } from '@angular/core/testing';
-import { DataTableModule } from './data-table.module';
+import { DragDropListModule } from './drag-drop-list.module';
 
-describe('DataTableModule', () => {
+describe('DragDropListModule', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [DataTableModule]
+      imports: [DragDropListModule]
     }).compileComponents();
   }));
 
   it('should create', () => {
-    expect(DataTableModule).toBeDefined();
+    expect(DragDropListModule).toBeDefined();
   });
 });

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { DropEvent } from '../../../../libs/data-table/src/lib/data-table/data-table.component';
-import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { BehaviorSubject } from 'rxjs';
 
 interface File {
   type: 'FILE';
@@ -14,7 +14,9 @@ interface Folder {
   id: number;
 }
 
-const items: Array<File | Folder> = [
+const data: Array<File | Folder> = [
+  { id: 1, type: 'FILE', name: 'Hydrogen' },
+  { id: 2, type: 'FILE', name: 'Helium' },
   { id: 3, type: 'FILE', name: 'Lithium' },
   { id: 4, type: 'FILE', name: 'Beryllium' },
   { id: 0, type: 'FOLDER', name: 'Elements' },
@@ -23,14 +25,16 @@ const items: Array<File | Folder> = [
   { id: 7, type: 'FILE', name: 'Nitrogen' },
   { id: 8, type: 'FILE', name: 'Oxygen' },
   { id: 9, type: 'FILE', name: 'Fluorine' },
-  { id: 10, type: 'FILE', name: 'Neon' },
-  { id: 11, type: 'FILE', name: 'Sodium' }
+  { id: 10, type: 'FILE', name: 'Sodium' }
 ];
 
-const elements: Array<File | Folder> = [
-  { id: 1, type: 'FILE', name: 'Hydrogen' },
-  { id: 2, type: 'FILE', name: 'Helium' }
-];
+let items: Array<File | Folder> = [];
+
+for (let i = 0; i < 300; i++) {
+  items = items.concat(data);
+}
+
+const elements: Array<File | Folder> = [];
 
 @Component({
   selector: 'demo-root',
@@ -38,26 +42,27 @@ const elements: Array<File | Folder> = [
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  data = items;
+  items = items;
+  data = new BehaviorSubject(this.items);
   columns = ['type', 'name'];
   isFolder(item: File | Folder) {
     return item.type === 'FOLDER';
   }
 
-  onDrop(event: DropEvent<File | Folder>) {
-    if (event.currentIndex === event.previousIndex) {
-      return;
-    }
-    this.data.splice(event.previousIndex, 1);
-    elements.push(event.event.source.data);
-    event.render(this.data);
+  onDrop(event: CdkDragDrop<File | Folder>) {
+    const previousIndex = this.items.indexOf(event.item.data);
+    this.items.splice(previousIndex, 1);
+    elements.push(event.item.data);
+    this.data.next(this.items);
   }
 
-  onSort(event: DropEvent<File | Folder>) {
-    if (event.currentIndex === event.previousIndex) {
+  onSort(event: CdkDragDrop<File | Folder>) {
+    const previousIndex = this.items.indexOf(event.item.data);
+    if (event.currentIndex === previousIndex) {
       return;
     }
-    moveItemInArray(this.data, event.previousIndex, event.currentIndex);
-    event.render(this.data);
+    console.log(previousIndex, event.currentIndex);
+    moveItemInArray(this.items, previousIndex, event.currentIndex);
+    this.data.next(this.items);
   }
 }
