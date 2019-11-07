@@ -58,6 +58,12 @@ export class AppComponent {
 
   onSort(event: CdkDragDrop<File | Folder>) {
     const previousIndex = this.items.indexOf(event.item.data);
+
+    if (event.container !== event.previousContainer) {
+      console.log('was droppped in a different list ');
+      return;
+    }
+
     if (event.currentIndex === previousIndex) {
       return;
     }

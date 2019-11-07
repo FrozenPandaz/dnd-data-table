@@ -1,5 +1,11 @@
+:host {
+  dispaly: flex;
+  flex-direction: row;
+}
+
 table {
-  width: 100%;
+  width: 50%;
+  display: inline-table;
 }
 
 .cdk-drag-placeholder {

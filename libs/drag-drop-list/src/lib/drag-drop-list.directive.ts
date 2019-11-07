@@ -17,7 +17,8 @@ import {
 import { filter } from 'rxjs/operators';
 
 @Directive({
-  selector: '[demoDragDropList]'
+  selector: '[demoDragDropList]',
+  exportAs: 'demoDragDropList'
 })
 export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
   private originalSortItem;
@@ -61,7 +62,6 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
       }
       this.reset();
     });
-    // this.dropped = this.dropped.pipe(filter(() => this._sortDisabled));
   }
 
   private listenForClasses() {
