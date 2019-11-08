@@ -105,27 +105,18 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
       return;
     }
 
-    const currentIndex = siblings.findIndex(
-      currentItem => currentItem.drag === item
-    );
-
-    if (this.dragPredicate(this.data[currentIndex + pointerDelta.y])) {
-      // return;
-      // console.log(
+    if (this.dragPredicate(siblings[newIndex].drag.data.data)) {
       const hoverZone = this.getHoverZone(
-        siblings[currentIndex + pointerDelta.y].clientRect,
+        siblings[newIndex].clientRect,
         pointerY
       );
       this._sortDisabled = false;
       if (hoverZone === 0) {
-        this.hoveredItem =
-          siblings[currentIndex + pointerDelta.y].drag.data.element;
+        this.hoveredItem = siblings[newIndex].drag.data.element;
         this.hoveredItem.nativeElement.classList.add('drag-drop-list-hover');
         this._sortDisabled = true;
       } else {
-        siblings[
-          currentIndex + pointerDelta.y
-        ].drag.data.element.nativeElement.classList.remove(
+        siblings[newIndex].drag.data.element.nativeElement.classList.remove(
           'drag-drop-list-hover'
         );
         this._sortDisabled = false;
