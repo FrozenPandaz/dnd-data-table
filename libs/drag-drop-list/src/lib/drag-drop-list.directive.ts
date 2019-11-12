@@ -4,6 +4,7 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   QueryList
@@ -21,9 +22,12 @@ import { interval, Subject } from 'rxjs';
   selector: '[demoDragDropList]',
   exportAs: 'demoDragDropList'
 })
-export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
+export class DragDropListDirective<T> extends CdkDropList<T>
+  implements OnInit, OnDestroy {
   private originalSortItem;
   private _sortDisabled: boolean;
+
+  private onDestroy$ = new Subject();
 
   @Input()
   dragPredicate: (item: T) => boolean = () => false;
@@ -62,7 +66,7 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
   ngOnInit() {
     this.patchSort();
     this.listenForClasses();
-    this.dropped.subscribe(e => {
+    this.dropped.pipe(takeUntil(this.onDestroy$)).subscribe(e => {
       this.stopScrolling();
       if (this._sortDisabled) {
         this.dropDragListDrop.emit(e);
@@ -74,10 +78,12 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
   }
 
   private listenForClasses() {
-    this._dropListRef.beforeStarted.subscribe(() => {
-      this.element.nativeElement.classList.add('cdk-drop-list-dragging');
-    });
-    this._dropListRef.dropped.subscribe(() => {
+    this._dropListRef.beforeStarted
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe(() => {
+        this.element.nativeElement.classList.add('cdk-drop-list-dragging');
+      });
+    this._dropListRef.dropped.pipe(takeUntil(this.onDestroy$)).subscribe(() => {
       this.element.nativeElement.classList.remove('cdk-drop-list-dragging');
     });
   }
@@ -198,5 +204,10 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
     }
 
     return 0;
+  }
+
+  ngOnDestroy() {
+    this.stopScrolling();
+    this.onDestroy$.next();
   }
 }
