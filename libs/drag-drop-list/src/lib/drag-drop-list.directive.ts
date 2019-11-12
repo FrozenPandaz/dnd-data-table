@@ -14,7 +14,8 @@ import {
   CdkDropList,
   DragRef
 } from '@angular/cdk/drag-drop';
-import { filter } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
+import { interval, Subject } from 'rxjs';
 
 @Directive({
   selector: '[demoDragDropList]',
@@ -25,7 +26,7 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
   private _sortDisabled: boolean;
 
   @Input()
-  dragPredicate: (item: T) => boolean;
+  dragPredicate: (item: T) => boolean = () => false;
 
   @Input()
   dropBuffer = 8;
@@ -34,6 +35,13 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
   children: QueryList<CdkDrag>;
 
   private hoveredItem: ElementRef;
+  private scrollParent: HTMLElement;
+
+  private get scrollOffset() {
+    return this.scrollParent.scrollTop;
+  }
+  private scrolling = false;
+  private stopScrollingSubject = new Subject();
 
   @Input('demoDragDropListData')
   set demoDragDropListData(data: T) {
@@ -55,6 +63,7 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
     this.patchSort();
     this.listenForClasses();
     this.dropped.subscribe(e => {
+      this.stopScrolling();
       if (this._sortDisabled) {
         this.dropDragListDrop.emit(e);
       } else {
@@ -94,11 +103,13 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
       y: number;
     }
   ) {
+    this.scrollIfNecessary(pointerX, pointerY);
+
     const siblings = (<any>this._dropListRef)._itemPositions;
     const newIndex = (<any>this._dropListRef)._getItemIndexFromPointerPosition(
       item,
       pointerX,
-      pointerY,
+      pointerY + this.scrollOffset,
       pointerDelta
     );
     if (newIndex === -1 && siblings.length > 0) {
@@ -131,9 +142,49 @@ export class DragDropListDirective<T> extends CdkDropList<T> implements OnInit {
     this.originalSortItem.bind(this._dropListRef)(
       item,
       pointerX,
-      pointerY,
+      pointerY + this.scrollOffset,
       pointerDelta
     );
+  }
+
+  private scrollIfNecessary(x: number, y: number) {
+    const findScrollableParent = () => {
+      let element = this._dropListRef.element;
+      while (element.scrollHeight === element.clientHeight) {
+        element = element.parentElement;
+      }
+      return element;
+    };
+    this.scrollParent = this.scrollParent || findScrollableParent();
+    const scrollRect = this.scrollParent.getBoundingClientRect();
+    if ((scrollRect.bottom - y) / scrollRect.height < 0.05) {
+      this.startScrolling(5);
+    } else if ((y - scrollRect.top) / scrollRect.height < 0.05) {
+      this.startScrolling(-5);
+    } else {
+      this.stopScrolling();
+    }
+  }
+
+  private startScrolling(distance: number) {
+    if (this.scrolling) {
+      return;
+    }
+    this.scrolling = true;
+
+    interval(10)
+      .pipe(takeUntil(this.stopScrollingSubject))
+      .subscribe(() => {
+        this.scrollParent.scrollBy(0, distance);
+      });
+  }
+
+  private stopScrolling() {
+    if (!this.scrolling) {
+      return;
+    }
+    this.scrolling = false;
+    this.stopScrollingSubject.next();
   }
 
   private getHoverZone(rect: ClientRect | DOMRect, pointerY: number) {
