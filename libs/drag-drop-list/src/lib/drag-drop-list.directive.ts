@@ -143,6 +143,12 @@ export class DragDropListDirective<T> extends CdkDropList<T>
       }
     } else {
       this._sortDisabled = false;
+      const hoveredElements = this._dropListRef.element.getElementsByClassName(
+        'drag-drop-list-hover'
+      );
+      for (let i = 0; i < hoveredElements.length; i++) {
+        hoveredElements.item(i).classList.remove('drag-drop-list-hover');
+      }
     }
 
     this.originalSortItem.bind(this._dropListRef)(
