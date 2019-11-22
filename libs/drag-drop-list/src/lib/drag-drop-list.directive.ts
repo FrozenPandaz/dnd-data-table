@@ -42,8 +42,11 @@ export class DragDropListDirective<T> extends CdkDropList<T>
   private scrollParent: HTMLElement;
 
   private get scrollOffset() {
-    return this.scrollParent.scrollTop;
+    return this.hasScrolled ? this.scrollParent.scrollTop : 0;
   }
+
+  private dScrollOffset = 0;
+  private hasScrolled = false;
   private scrolling = false;
   private stopScrollingSubject = new Subject();
 
@@ -94,6 +97,8 @@ export class DragDropListDirective<T> extends CdkDropList<T>
   }
 
   private reset() {
+    this.hasScrolled = false;
+    this.dScrollOffset = 0;
     if (!this.hoveredItem) {
       return;
     }
@@ -118,6 +123,7 @@ export class DragDropListDirective<T> extends CdkDropList<T>
       pointerY + this.scrollOffset,
       pointerDelta
     );
+    console.log(newIndex);
     if (newIndex === -1 && siblings.length > 0) {
       return;
     }
@@ -154,7 +160,7 @@ export class DragDropListDirective<T> extends CdkDropList<T>
     this.originalSortItem.bind(this._dropListRef)(
       item,
       pointerX,
-      pointerY + this.scrollOffset,
+      pointerY + this.dScrollOffset,
       pointerDelta
     );
   }
@@ -183,11 +189,14 @@ export class DragDropListDirective<T> extends CdkDropList<T>
       return;
     }
     this.scrolling = true;
+    this.hasScrolled = true;
 
     interval(10)
       .pipe(takeUntil(this.stopScrollingSubject))
       .subscribe(() => {
         this.scrollParent.scrollBy(0, distance);
+
+        this.dScrollOffset += distance;
       });
   }
 
