@@ -40,10 +40,7 @@ export class DragDropListDirective<T> extends CdkDropList<T>
 
   private hoveredItem: ElementRef;
   private scrollParent: HTMLElement;
-
-  private get scrollOffset() {
-    return this.hasScrolled ? this.scrollParent.scrollTop : 0;
-  }
+  private scrollRect: ClientRect;
 
   private dScrollOffset = 0;
   private hasScrolled = false;
@@ -120,7 +117,7 @@ export class DragDropListDirective<T> extends CdkDropList<T>
     const newIndex = (<any>this._dropListRef)._getItemIndexFromPointerPosition(
       item,
       pointerX,
-      pointerY + this.scrollOffset,
+      pointerY + this.dScrollOffset,
       pointerDelta
     );
     console.log(newIndex);
@@ -139,7 +136,7 @@ export class DragDropListDirective<T> extends CdkDropList<T>
     if (this.dragPredicate(siblings[newIndex].drag.data.data)) {
       const hoverZone = this.getHoverZone(
         siblings[newIndex].clientRect,
-        pointerY
+        pointerY + this.dScrollOffset
       );
       this._sortDisabled = false;
       if (hoverZone === 0) {
@@ -176,11 +173,13 @@ export class DragDropListDirective<T> extends CdkDropList<T>
       return element;
     };
     this.scrollParent = this.scrollParent || findScrollableParent();
-    const scrollRect = this.scrollParent.getBoundingClientRect();
-    if ((scrollRect.bottom - y) / scrollRect.height < 0.05) {
-      this.startScrolling(5);
-    } else if ((y - scrollRect.top) / scrollRect.height < 0.05) {
-      this.startScrolling(-5);
+    this.scrollRect = this.scrollParent.getBoundingClientRect();
+
+    const DISTANCE = 5;
+    if ((this.scrollRect.bottom - y) / this.scrollRect.height < 0.05) {
+      this.startScrolling(DISTANCE);
+    } else if ((y - this.scrollRect.top) / this.scrollRect.height < 0.05) {
+      this.startScrolling(-DISTANCE);
     } else {
       this.stopScrolling();
     }
@@ -190,15 +189,24 @@ export class DragDropListDirective<T> extends CdkDropList<T>
     if (this.scrolling) {
       return;
     }
+    console.log('start');
     this.scrolling = true;
     this.hasScrolled = true;
 
     interval(10)
       .pipe(takeUntil(this.stopScrollingSubject))
       .subscribe(() => {
-        this.scrollParent.scrollBy(0, distance);
+        if (
+          this.scrollParent.scrollTop > -distance &&
+          this.scrollParent.scrollTop + this.scrollRect.height + distance <
+            this.scrollParent.scrollHeight
+        ) {
+          this.scrollParent.scrollBy(0, distance);
 
-        this.dScrollOffset += distance;
+          this.dScrollOffset += distance;
+        } else {
+          this.stopScrolling();
+        }
       });
   }
 
@@ -206,11 +214,13 @@ export class DragDropListDirective<T> extends CdkDropList<T>
     if (!this.scrolling) {
       return;
     }
+    console.log('stop');
     this.scrolling = false;
     this.stopScrollingSubject.next();
   }
 
   private getHoverZone(rect: ClientRect | DOMRect, pointerY: number) {
+    console.log(rect.top, pointerY, rect.bottom);
     if (pointerY - Math.floor(rect.top) < this.dropBuffer) {
       return -1;
     }

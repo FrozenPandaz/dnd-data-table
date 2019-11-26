@@ -36,7 +36,7 @@ const data: Array<File | Folder> = [
 
 let items: Array<File | Folder> = [];
 
-for (let i = 0; i < 300; i++) {
+for (let i = 0; i < 2; i++) {
   items = items.concat(data);
 }
 
@@ -50,7 +50,7 @@ const elements: Array<File | Folder> = [];
 export class AppComponent {
   items = items;
   data = new BehaviorSubject(this.items);
-  columns = ['type', 'name'];
+  columns = ['index', 'type', 'name'];
   isFolder(item: File | Folder) {
     return item.type === 'FOLDER';
   }
